@@ -25,3 +25,4 @@ jobs:
         with:
           webhook-url: ${{ secrets.WHL }}
           content: ${{ steps.select_message.outputs.message }}
+          username: "Blobby"
