@@ -1,6 +1,8 @@
-name: Send Random Discord Message
+name: Random Discord Message
 
 on:
+  schedule:
+    - cron: '0 0 * * *'  # Placeholder; will be updated dynamically
   workflow_dispatch:
 
 jobs:
@@ -16,7 +18,7 @@ jobs:
           node-version: '14'
 
       - name: Install jq
-        run: sudo apt-get install jq
+        run: sudo apt-get install -y jq
 
       - name: Select Random Message
         id: select_message
@@ -33,4 +35,26 @@ jobs:
           webhook-url: ${{ secrets.WHL }}
           content: ${{ steps.select_message.outputs.message }}
           username: "Blobby"
-          avatar-url: "https://raw.githubusercontent.com/SCPNerd/troll/ce590fc324c3e7c7a2bfe7fd0869a2248c7e844b/pfp.png"
+          avatar-url: "https://raw.githubusercontent.com/your-username/your-repo/main/pfp.png"
+
+      - name: Update Workflow with New Cron Schedule
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Calculate a random delay between 4 and 24 hours (in minutes)
+          MIN_DELAY=$((4 * 60))
+          MAX_DELAY=$((24 * 60))
+          RANDOM_DELAY=$((RANDOM % (MAX_DELAY - MIN_DELAY + 1) + MIN_DELAY))
+
+          # Calculate the next run time
+          NEXT_RUN=$(date -u -d "+$RANDOM_DELAY minutes" +"%M %H %d %m *")
+
+          # Update the workflow file with the new cron schedule
+          sed -i "s/cron: '.*'/cron: '$NEXT_RUN'/" .github/workflows/random-discord-message.yml
+
+          # Commit and push the changes
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add .github/workflows/random-discord-message.yml
+          git commit -m "Update workflow schedule to run at $NEXT_RUN"
+          git push
