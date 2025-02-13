@@ -27,13 +27,16 @@ jobs:
           const fs = require('fs');
           const messages = JSON.parse(fs.readFileSync('messages.json', 'utf8'));
           const randomIndex = Math.floor(Math.random() * messages.length);
-          console.log(`::set-output name=message::${messages[randomIndex]}`);
+          const message = messages[randomIndex];
+          console.log(`Selected message: ${message}`);
+          console.log(\"MESSAGE=$(echo $message | jq -R .)\" >> $GITHUB_ENV);
           "
-          
+
       - name: Send message to Discord
         env:
           WEBHOOK_URL: ${{ secrets.WHL }}
+          MESSAGE: ${{ env.MESSAGE }}
         run: |
           curl -H "Content-Type: application/json" \
-               -d "{\"content\": \"${{ steps.select-message.outputs.message }}\", \"username\": \"Blobby\", \"avatar_url\": \"https://raw.githubusercontent.com/SCPNerd/troll/main/pfp.png\"}" \
+               -d "{\"content\": ${MESSAGE}, \"username\": \"Blobby\", \"avatar_url\": \"https://raw.githubusercontent.com/SCPNerd/troll/main/pfp.png\"}" \
                $WEBHOOK_URL
