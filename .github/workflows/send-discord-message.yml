@@ -23,14 +23,11 @@ jobs:
       - name: Select random message
         id: select-message
         run: |
-          node -e "
-          const fs = require('fs');
-          const messages = JSON.parse(fs.readFileSync('messages.json', 'utf8'));
-          const randomIndex = Math.floor(Math.random() * messages.length);
-          const message = messages[randomIndex];
-          console.log(`Selected message: ${message}`);
-          console.log(\"MESSAGE=$(echo $message | jq -R .)\" >> $GITHUB_ENV);
-          "
+          # Run Node to select a random message from messages.json and capture its output
+          message=$(node -e 'const fs = require("fs"); const messages = JSON.parse(fs.readFileSync("messages.json", "utf8")); const randomIndex = Math.floor(Math.random() * messages.length); process.stdout.write(messages[randomIndex]);')
+          echo "Selected message: $message"
+          # Use jq to properly escape the message as a JSON string and set it as an env variable
+          echo "MESSAGE=$(echo "$message" | jq -R .)" >> $GITHUB_ENV
 
       - name: Send message to Discord
         env:
