@@ -1,8 +1,8 @@
-name: Random Discord Message
+name: Discord Message Sender
 
 on:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: '0 */5 * * *'
   workflow_dispatch:
 
 jobs:
@@ -12,43 +12,10 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v2
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Select random message
-        id: select-message
-        run: |
-          node -e "
-          const fs = require('fs');
-          const messages = JSON.parse(fs.readFileSync('messages.json', 'utf8'));
-          const randomIndex = Math.floor(Math.random() * messages.length);
-          console.log(`::set-output name=message::${messages[randomIndex]}`);
-          "
-          
       - name: Send message to Discord
         env:
           WEBHOOK_URL: ${{ secrets.WHL }}
         run: |
           curl -H "Content-Type: application/json" \
-               -d "{\"content\": \"${{ steps.select-message.outputs.message }}\", \"username\": \"Blobby\", \"avatar_url\": \"https://raw.githubusercontent.com/SCPNerd/troll/main/pfp.png\"}" \
+               -d "{\"content\": \"Your message here\", \"username\": \"Blobby\", \"avatar_url\": \"https://raw.githubusercontent.com/SCPNerd/troll/main/pfp.png\"}" \
                $WEBHOOK_URL
-
-      - name: Calculate random delay and update schedule
-        env:
-          GITHUB_TOKEN: ${{ secrets.GT }}
-        run: |
-          MIN_DELAY=$((4 * 60))
-          MAX_DELAY=$((24 * 60))
-          RANDOM_DELAY=$((RANDOM % (MAX_DELAY - MIN_DELAY + 1) + MIN_DELAY))
-          NEXT_RUN=$(date -u -d "+$RANDOM_DELAY minutes" +"%M %H %d %m *")
-          sed -i "s/cron: '.*'/cron: '$NEXT_RUN'/" .github/workflows/random-discord-message.yml
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add .github/workflows/random-discord-message.yml
-          git commit -m "Update workflow schedule to run at $NEXT_RUN"
-          git push
