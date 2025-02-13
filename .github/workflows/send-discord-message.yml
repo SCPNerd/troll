@@ -23,5 +23,5 @@ jobs:
       - name: Send Discord Message
         uses: tsickert/discord-webhook@v1.0.0
         with:
-          webhook: ${{ secrets.WHL }}
+          webhook-url: ${{ secrets.WHL }}
           content: ${{ steps.select_message.outputs.message }}
