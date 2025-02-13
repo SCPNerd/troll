@@ -10,9 +10,16 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Set Up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'
+
+      - name: Install jq
+        run: sudo apt-get install jq
+
       - name: Select Random Message
         id: select_message
-        shell: bash
         run: |
           messages=$(jq -r '.[]' messages.json)
           count=$(echo "$messages" | wc -l)
@@ -26,3 +33,4 @@ jobs:
           webhook-url: ${{ secrets.WHL }}
           content: ${{ steps.select_message.outputs.message }}
           username: "Blobby"
+          avatar-url: "https://raw.githubusercontent.com/SCPNerd/troll/ce590fc324c3e7c7a2bfe7fd0869a2248c7e844b/pfp.png"
