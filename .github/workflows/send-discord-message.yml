@@ -1,0 +1,27 @@
+name: Send Random Discord Message
+
+on:
+  workflow_dispatch:
+
+jobs:
+  send_message:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Select Random Message
+        id: select_message
+        shell: bash
+        run: |
+          messages=$(jq -r '.[]' messages.json)
+          count=$(echo "$messages" | wc -l)
+          random_index=$((RANDOM % count))
+          selected_message=$(echo "$messages" | sed -n "$((random_index + 1))p")
+          echo "message=$selected_message" >> $GITHUB_OUTPUT
+
+      - name: Send Discord Message
+        uses: tsickert/discord-webhook@v1.0.0
+        with:
+          webhook: ${{ secrets.WHL }}
+          content: ${{ steps.select_message.outputs.message }}
